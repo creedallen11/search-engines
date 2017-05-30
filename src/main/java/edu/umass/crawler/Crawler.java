@@ -1,25 +1,22 @@
 package edu.umass.crawler;
 
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.StringTokenizer;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
+import java.util.*;
 
 /**
- * Crawler Thread
- * @author Creed
+ * Example Crawler Thread
+ * @author Creed Allen
+ * Descriptions of crawler functions and data structures as well as big-O decisions are given in the README.
  */
 public class Crawler {
     public final int UNIQUE_LINKS = 1000; // number of links to find
@@ -39,9 +36,10 @@ public class Crawler {
         delayTracker = new HashMap<>();
         foundHosts = new ArrayList<>();
 
+        // Initialize a frontier with URLs to explore.
         for (String seed : seeds) {
             URL newURL;
-            try { // Add seed URLs to frontier and mark them as seen
+            try {
                 newURL = new URL(seed);
                 frontier.add(newURL);
             } catch (MalformedURLException ex) {
@@ -50,22 +48,25 @@ public class Crawler {
         }
     }
 
-    /* Extract links on a page */
+    /*
+    Takes a URL and finds all the links on it's page. Valid links are added to the frontier and all links are marked
+    as found so they are not processed again when encountered on another page.
+     */
     public void extractLinks(URL currentURL) {
         try {
-            Document doc =  Jsoup.connect(currentURL.toString()).get();
-            Elements links = doc.select("a[href]");
+            Document currentDoc =  Jsoup.connect(currentURL.toString()).get();
+            Elements links = currentDoc.select("a[href]");
+
             links.stream().map((link) -> link.attr("abs:href")).forEach((found_link) -> {
                 URL found_URL;
                 try {
                     found_URL = new URL(found_link);
                     if (!foundURLs.contains(found_URL) && !found_URL.toString().contains("mailto:")) {
                         // URL OK, add it to crawl.
-                        //&& isValidHost(found_URL) <-- used in part A
                         frontier.add(found_URL);
                         uniqueList.add(found_URL);
                     }
-                    foundURLs.add(found_URL); // mark all URLs as found
+                    foundURLs.add(found_URL);
                 } catch (IOException ex) {
                     System.out.println("Malformed " + found_link);
                 }
@@ -88,6 +89,7 @@ public class Crawler {
         delayTracker.put(link.getHost(), currentTime);
     }
 
+    /* Returns true if host hasn't been targeted in under 5 sec */
     public boolean sufficientDelay(URL link) {
         String host = link.getHost();
         long current = System.currentTimeMillis();
@@ -95,6 +97,8 @@ public class Crawler {
         return (diff >= 5000); // true only if we havent pinged in past 5 sec
     }
 
+    /* Checks a host for crawler exceptions in the robots.txt file. parseRobots makes assumptions about
+     * the format of a robots.txt file. */
     public void parseRobots(URL url) {
         // MAKES THE ASSUMPTION DISALLOWS REFER TO OUR CRAWLER
         URL robotsLink;
@@ -102,7 +106,6 @@ public class Crawler {
         try {
             foundHosts.add(host);
             robotsLink = new URL("http://" + host + "/robots.txt");
-            //System.out.println("Found a robots file");
         }
         catch (Exception e) {
             System.out.println("URL is likely malformed");
@@ -131,8 +134,10 @@ public class Crawler {
         } catch (Exception ex) {} // no robots file found crawl OK
     }
 
+    /* If a resource's host has a robots.txt on file with the crawler, this function will confirm crawling of the
+     resource is allowed.
+      */
     public boolean notInRobots(URL link) {
-        // Check to see if a URL's resource is in the host's disallowed.
         String host = link.getHost();
         ArrayList<String> forbidden = robots.getOrDefault(host, new ArrayList<>());
         if (!forbidden.isEmpty()) {
@@ -143,6 +148,9 @@ public class Crawler {
         return true;
     }
 
+
+    /* Crawl the frontier for new links. For this simple implementation a crawl will conclude after the
+     * unique links count is reached or the frontier is empty (unlikely). */
     public void crawlFrontier() {
         int pagesCrawled = 0;
         while (!frontier.isEmpty() && uniqueList.size() < UNIQUE_LINKS) {
@@ -166,12 +174,9 @@ public class Crawler {
                 frontier.add(currentURL);
             }
         }
-        // Print out links
-        uniqueList.stream().forEach((u) -> {
-            System.out.println(u);
-        });
-        System.out.println("CRAWLED " + pagesCrawled + " pages." +
-                " finding " + uniqueList.size() + " unique pages.");
+
+        // From here links and status' can be saved to a file or database for further use.
+        // Included in sample output is a run on the ciir domains above.
     }
 }
 
