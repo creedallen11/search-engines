@@ -1,7 +1,7 @@
 ## search-engines
 mini-projects that demonstrate process' in IR
 
-## 1. Web Crawler (crawler)
+## 1. [Web Crawler](src/main/java/edu/umass/crawler/Crawler.java)
 This is an example of a single thread web crawler. The data structures in it are not designed to scale as this crawler is designed to demonstrate a basic algorithm for a web crawling node. Scaling would likely involve replacing the in memory status' of the data structures with NoSQL databases.
 **Instance Data Structures**
 - **validHosts** - Used to restrict the crawl to a specific set of hosts.
