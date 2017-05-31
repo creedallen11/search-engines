@@ -10,29 +10,32 @@ import java.util.HashSet;
 import java.util.Map;
 
 /**
- * Preprocess file for user with PageRankCalculator.
+ * Preprocess file for use with PageRankCalculator.
  * @author Creed
  */
 public class PreProcessing {
     HashSet<String> sources; // unique source list
-    HashMap<String, ArrayList> links; // source -> list of dests
-    String target;
+    HashMap<String, ArrayList> links; // source -> links on source page
+    String outFileName;
 
     public PreProcessing(String t) {
-        target = t;
+        outFileName = t;
         sources = new HashSet<>();
         links = new HashMap<>();
     }
 
-    public void buildGraph() { // build the link and source list
-        try (BufferedReader br = new BufferedReader(new FileReader(target))) {
+    /* Populate the sources and links data structures for use in PageRank */
+    public void buildGraph() {
+        try (BufferedReader br = new BufferedReader(new FileReader(outFileName))) {
             String sCurrentLine;
             while ((sCurrentLine = br.readLine()) != null) {
                 String[] tokens = sCurrentLine.split("\t"); //
                 String s = tokens[0]; String d = tokens[1];
+                // Ensure nodes exist for each page seen
                 sources.add(s);
                 sources.add(d);
 
+                // Add dest to source if source exists, else create source->[link....] in links
                 if (links.containsKey(s)) {
                     ArrayList<String> old = links.get(s);
                     old.add(d);
@@ -45,7 +48,6 @@ public class PreProcessing {
                 }
             }
             br.close();
-            System.out.println("Unique Sources: " + sources.size());
 
             for (String key: links.keySet()) {
                 ArrayList<String> t = links.get(key);
@@ -70,7 +72,6 @@ public class PreProcessing {
             ArrayList value = entry.getValue();
             linkCount = linkCount + value.size();
         }
-        //System.out.println("Total # of links: " + linkCount);
         return links;
 
     }

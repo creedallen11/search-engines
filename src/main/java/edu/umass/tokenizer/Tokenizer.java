@@ -1,90 +1,58 @@
 package edu.umass.tokenizer;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Tokenization class for project 2 CMPSCI 446
+ * Class to implement tokenization and stopword removal on URL text.
  * @author Creed Allen
  */
 public class Tokenizer {
-    ArrayList<String> term_array; // the term array for output of part A
+    ArrayList<String> term_array; // this is a list of the documents words sequentially
     HashSet<String> stop_words; // stop word list
     File f;
-    HashSet<String> unique_words; int collection; // used for question 6
+    int collectionSize; // tracks the number of words in the document post processing
 
 
-    /**
-     * Constructor that executes the rules, stopping & Porter stemming.
-     * @param f File to tokenize.
-     * @param target, output for the term array, note if running top 200 words
-     * as well, this will be overwritten.
-     */
-    public Tokenizer(File f, String target) throws FileNotFoundException, UnsupportedEncodingException {
+    public Tokenizer(File f, String outputFile) throws FileNotFoundException, UnsupportedEncodingException {
         term_array = new ArrayList<>();
-        unique_words = new HashSet<>();
         this.f = f;
+
+        // Generate the stop_words list from input file.
         try {
-            stop_words = buildStopWords("stopwords.txt");
+            stop_words = buildStopWords("../../resources/stopwords.txt");
             System.out.println("SUCCESS: Built stop_words.");
         } catch (Exception e) {
             System.out.println("WARNING: stop_words failed to build and is empty.");
-            stop_words = new HashSet<>();
+            stop_words = new HashSet<>(); // will proceed without a stop word set.
         }
 
-        PrintWriter data = new PrintWriter("data.txt", "UTF-8");
-        for (String w: preProcessLine(this.readFile(f)).split(" ")) {
-            collection++;
-            if (w.length() > 0) {
-//                // NOTE: FOLLOWING IF CLAUSE CAN BE COMMENTED OUT, USED FOR P6 DATA COLLECTION
-//                if (!unique_words.contains(w)) {
-//                    unique_words.add(w);
-//                    if (collection % 100 == 0) // note x,y coordinates every 100 words
-//                        data.append(Integer.toString(collection) + ", " + Integer.toString(unique_words.size()) + "\n");
-//                }
-                if (!isStopWord(w)) {
-                    term_array.add(w);
-                    unique_words.add(w);
-                }
+
+        // Remove punctuation and prepare for Porter Stemming
+        for (String w: preprocess(this.readFile(f)).split(" ")) {
+            if (w.length() > 0 && !isStopWord(w)) {
+                term_array.add(w);
+                collectionSize++;
             }
         }
-        data.close();
 
         // At this point, we have taken in the file applied token rules and stopping.
         // Next, apply Porter Stemming rule 1a & 1b.
-
-        for (int i = 0; i < term_array.size(); i++) term_array.set(i, porterStem(term_array.get(i)));
+        for (int i = 0; i < term_array.size(); i++)  {
+            term_array.set(i, porterStem(term_array.get(i)));
+        }
         // write term array to target
-        PrintWriter writer = new PrintWriter(target, "UTF-8");
+        PrintWriter writer = new PrintWriter(outputFile, "UTF-8");
         for (String word : term_array)
             writer.append(word.trim() + "\n");
         writer.close();
 
-
-
-        // COMMENT THIS OUT FOR PART A RUN
-        // Writes top 200 terms to terms.txt
-        //this.top_200_word_counts();
     }
 
-    /**
-     * Takes in the stopwords.txt file and builds a HashSet for the tokenizer
-     * class that contains all stop words.
-     * @param s String representing stopword file.
-     * @throws FileNotFoundException Handled by caller.
-     * @throws IOException  Handled by caller.
-     */
+    /* Generate stop_words from input file. */
     public HashSet<String> buildStopWords(String s) throws FileNotFoundException, IOException {
         stop_words = new HashSet<>();
 
@@ -97,11 +65,7 @@ public class Tokenizer {
         return stop_words;
     }
 
-    /**
-     * Converts a file to a string to be processed by tokenizer.
-     * @param file input file to tokenize
-     * @return string of file contents
-     */
+    /* Read in the document (file) and return it as a string. */
     public String readFile(File file) {
         StringBuilder sb = new StringBuilder();
         try {
@@ -120,10 +84,10 @@ public class Tokenizer {
             Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
         }
         return sb.toString();
-
     }
 
-    public String preProcessLine(String in) {
+    /* Trim and remove punctuation before stemming. Return the string. */
+    public String preprocess(String in) {
         ArrayList<String> out = new ArrayList<>();
         String[] input = in.toLowerCase().replaceAll("[^a-z. 0-9]", " ").trim().split(" ");
         for (String word: input) {
@@ -141,11 +105,7 @@ public class Tokenizer {
         return stop_words.contains(word);
     }
 
-    /**
-     * Porter stems the word, details given in README.
-     * @param word
-     * @return
-     */
+    /* Porter stems the word, details given in README. */
     public String porterStem(String word) {
         int last = word.length() - 1;
 
@@ -184,38 +144,20 @@ public class Tokenizer {
         //     * ex. hoping-> hope
 
         if (word.length() > 2 && word.substring(last-1).equals("ed") && containsVowel(word.substring(0, last-1)))
-            return auxillary(word.substring(0, last-1));
+            return modifyString(word.substring(0, last-1));
 
         if (word.length() > 4 && word.substring(last-3).equals("edly") && containsVowel(word.substring(0, last-3)))
-            return auxillary(word.substring(0, last-3));
+            return modifyString(word.substring(0, last-3));
 
         if (word.length() > 3 && word.substring(last-2).equals("ing") && containsVowel(word.substring(0, last-2)))
-            return auxillary(word.substring(0, last - 2));
+            return modifyString(word.substring(0, last - 2));
 
         if (word.length() > 5 && word.substring(last-4).equals("ingly") && containsVowel(word.substring(0, last-4)))
-            return auxillary(word.substring(0, last-4));
+            return modifyString(word.substring(0, last-4));
 
         return word;
     }
 
-    public void top_200_word_counts() throws FileNotFoundException, UnsupportedEncodingException {
-        HashMap<String, Integer> counts = new HashMap();
-        for (String word: term_array) {
-//            if (word.length() < 1) continue; line was used to look at pre stopped results.
-            if (!counts.containsKey(word))
-                counts.put(word, 1);
-            else
-                counts.put(word, counts.get(word) + 1);
-        }
-
-        PrintWriter writer = new PrintWriter("terms.txt", "UTF-8");
-        counts.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(200).forEach(writer::println);
-        writer.close();
-        //System.out.println(term_array);
-
-    }
 
     public static boolean isVowel(char ch) {
         return (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u');
@@ -240,7 +182,7 @@ public class Tokenizer {
     }
 
     // ASSUMES LENGTH IS AT LEAST 2, USED FOR PORTER STEMMING, README.
-    public static String auxillary(String s) {
+    public static String modifyString(String s) {
         if (s.substring(s.length()-2).equals("at") || s.substring(s.length()-2).equals("bl") || s.substring(s.length()-2).equals("iz"))
             return s + "e";
         else if (s.charAt(s.length()-1) == s.charAt(s.length()-2) && s.charAt(s.length()-1) != 'l'

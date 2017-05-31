@@ -175,7 +175,7 @@ public class Crawler {
             }
         }
 
-        // From here links and status' can be saved to a file or database for further use.
+        // From here links (uniqueList) and status' can be saved to a file or database for further use.
         // Included in sample output is a run on the ciir domains above.
     }
 }

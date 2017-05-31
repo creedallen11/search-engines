@@ -1,29 +1,12 @@
 package edu.umass.pagerank;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.io.*;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
- *
+ * Implementation of PageRank on an adjacency list graph.
  * @author Creed
  */
 public class PageRankCalculator {
@@ -41,6 +24,7 @@ public class PageRankCalculator {
         this.tau = tau;
         this.links = links;
         this.pages = pages;
+
         I = new double[pages.length];
         lookup = new HashMap<>();
 
@@ -48,11 +32,10 @@ public class PageRankCalculator {
             I[i] = 1.0 / pages.length;
             lookup.put(pages[i], i);
         }
-        //System.out.println("I=" + DoubleStream.of(I).sum());
     }
 
     public void iterate() {
-        // PageRank from 4.11
+        // PageRank from 4.11P
         boolean converged = false;
         R = new double[pages.length];
         do {
@@ -73,7 +56,7 @@ public class PageRankCalculator {
                     accumulator += (1 - lambda) * I[i] / pages.length;
                 }
             }
-            // disperse random surf in 1 sweet of the pages instead of every sink page
+            // disperse random surf in 1 sweep of the pages instead of every sink page
             for (int j = 0; j < pages.length; j++) {
                 R[j] = R[j] + accumulator;
             }
@@ -86,6 +69,7 @@ public class PageRankCalculator {
         } while (!converged);
     }
 
+    /* Helper method to check for convergence of the algorithm */
     public boolean hasConverged() {
         //System.out.println("Check: " + Math.abs(DoubleStream.of(this.I).sum() - DoubleStream.of(this.R).sum()));
         double s = 0;
@@ -97,6 +81,7 @@ public class PageRankCalculator {
         return s < tau;
     }
 
+    /* Output of iterate, writes to a local file but should be modified for usage. */
     public void generateTopInlinks(int n) {
         // generate the top n pages by inlinks
         int[] inLinkCounts = new int[pages.length];
@@ -106,7 +91,6 @@ public class PageRankCalculator {
                 inLinkCounts[lookup.get(t)]++;
             }
         }
-        //System.out.println("Targets count: " + IntStream.of(inLinkCounts).sum());
 
         Tuple<String, Integer>[] pairs = new Tuple[pages.length];
         for (int i = 0; i < pages.length; i++) {
@@ -126,6 +110,7 @@ public class PageRankCalculator {
         }
     }
 
+    /* Another output of iterate, writes to a local file but should be modified for usage. */
     public void generateTopPR(int n) {
         // generate the top n pages by page rank
         Tuple<String, Double>[] pairs = new Tuple[pages.length];
