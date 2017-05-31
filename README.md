@@ -59,4 +59,4 @@ The last section attempts to evaluate query performance based on the following r
 
 The performance of these search outputs is based on user judgement of search relevance, generated as **Judgements** class objects. The rank outputs are given as static class methods of Metrics. More details on these methods can be found on wiki https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval).
 
-**ToRun**: The main in Queries evaluates the results of trecruns included in the resources folder of SDM, BM25, Stress, Q-Relevance and Q-Liklihood runs against the judgements. 
+**ToRun**: The main in Queries evaluates the results of trecruns included in the resources folder of SDM, BM25, Stress, Q-Relevance and Q-Liklihood runs against the judgements.
