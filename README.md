@@ -1,7 +1,8 @@
 ## search-engines
 mini-projects that demonstrate process' in Information Retrieval
+Note: Process' are not designed to scale and merely demonstrate common algorithms explored in an IR class.
 
-## 1. Web Crawler (src/main/java/edu/umass/crawler/Crawler.java)
+## 1. [Web Crawler](src/main/java/edu/umass/crawler/Crawler.java)
 This is an example of a single thread web crawler. The data structures in it are not designed to scale as this crawler is designed to demonstrate a basic algorithm for a web crawling node. Scaling would likely involve replacing the in memory status' of the data structures with NoSQL databases. **ToRun:** Instantiate a crawler with a list of start URLs(as String) and call the crawlFrontier method.
 **Instance Variables**
 - **validHosts** - Used to restrict the crawl to a specific set of hosts.
@@ -19,7 +20,7 @@ This is an example of a single thread web crawler. The data structures in it are
 - **parseRobots(URL url)** - If a new host is encountered, this method is called to create an entry in robots referencing all disallowed resources on the hosts robots.txt O(1).
 - **crawlFrontier** - This generates the link collection. Frontier crawling is done with respect to sufficientDelay and entries at the front of the queue are pushed to the back if they are not ready to crawl. URLs are crawled one at a time until the frontier is empty or the target link limit is reached.
 
-## 2. Preprocessing (tokenizer)
+## 2. [Preprocessing](src/main/java/edu/umass/tokenizer/Tokenizer.java)
 Applies TREC tokenization, stop-word removal and Porter Stemming to a document body.
 **How tokenizer works**
 1. Open a document as a String using readFile.
@@ -33,7 +34,7 @@ Applies TREC tokenization, stop-word removal and Porter Stemming to a document b
 
 **How to Use**: Instantiate a stemmer with a file to modify and the output file name.
 
-## 3. PageRank (pagerank)
+## 3. [PageRank](src/main/java/edu/umass/pagerank/)
 This section generates a link graph for processing by the [PageRank](https://en.wikipedia.org/wiki/PageRank) Random Surfer Model ranking algorithm.
 **Parameters**
 - **lambda, tau** - variables described in the algorithm linked above. Tau will determine convergence of PR.
@@ -44,11 +45,11 @@ This section generates a link graph for processing by the [PageRank](https://en.
 The class constructor prepares the algorithm to run by binding all the instance variables and seeting up the I array. To run the algorithm call **iterate**, this function will loop the algorithm until the difference in iterations is less than tau.
 Now that the PR instance has a ranking, the next step is to generate the top results using **generateTopPR**, this method writes to a local file the top n ranked pages.
 
-## 4. Querying
+## 4. [Querying](src/main/java/edu/umass/queries/)
 This section takes a catalog of all the works of Shakespeare in JSON format and generates an inverted index in order to perform term and phrase queries on the document collection.
 The **Postings** and **Document** objects are used to organize metadata and generate position based results. Output of queries are written to local files.
 
-## 5. Metrics
+## 5. [Metrics](src/main/java/edu/umass/metrics/)
 The last section attempts to evaluate query performance based on the following rank outputs:
 1. NDCG@20
 2. P@5
