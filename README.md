@@ -1,3 +1,4 @@
+todo: configure .gitignore
 ## search-engines
 mini-projects that demonstrate process' in Information Retrieval
 **Note**: Process' are not designed to scale and merely demonstrate common algorithms explored in an IR class.
